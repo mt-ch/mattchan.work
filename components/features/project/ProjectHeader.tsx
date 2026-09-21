@@ -4,6 +4,8 @@ import { ArrowUpRightIcon } from "lucide-react";
 
 import type { ProjectDetail } from "@/lib/sanity";
 
+import { HeadingReveal } from "@/components/features/motion/HeadingReveal";
+
 export function ProjectHeader({ project }: { project: ProjectDetail }) {
   return (
     <header className="px-md pt-md relative grid min-h-124 w-full lg:grid-cols-2">
@@ -13,7 +15,9 @@ export function ProjectHeader({ project }: { project: ProjectDetail }) {
         </h2>
         <div className="gap-2xl flex flex-col">
           <div className="gap-md flex flex-col">
-            <h1 className="type-subheading font-medium">{project.title}</h1>
+            <HeadingReveal className="type-subheading font-medium">
+              {project.title}
+            </HeadingReveal>
             {project.heroText && (
               <p className="type-body font-normal whitespace-pre-line">
                 {project.heroText}

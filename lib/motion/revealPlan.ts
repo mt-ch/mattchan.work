@@ -1,4 +1,5 @@
 import {
+  HEADING_REVEAL_ROUTE_DELAY_MS,
   REVEAL_DURATION_MS,
   REVEAL_EASE,
   REVEAL_RISE_PX,
@@ -48,5 +49,43 @@ export function planSectionReveal({
     durationMs: REVEAL_DURATION_MS,
     ease: REVEAL_EASE,
     thresholdRatio: REVEAL_THRESHOLD_RATIO,
+  };
+}
+
+/** How a heading reveal was set off. See `planHeadingReveal`. */
+export type HeadingRevealTrigger = "firstload" | "route";
+
+export interface HeadingRevealPlan {
+  /** Whether the split/reveal runs at all. `false` under OS "reduce motion" —
+   * the heading renders plain, with no split and no animation. */
+  enabled: boolean;
+  /** How long to wait, in ms, before the reveal starts. */
+  delayMs: number;
+}
+
+/**
+ * The pure decision seam for the h1 split-text reveal (#227). Given how a
+ * heading's reveal was set off and the motion environment, returns whether to
+ * animate and how long to wait first. The SplitText/GSAP wiring is the
+ * imperative shell around this — see `useHeadingReveal`.
+ *
+ * `"firstload"` needs no extra delay: it is already sequenced into the
+ * first-load panel lift in `PageTransitionProvider`, itself gated on
+ * `document.fonts.ready`. `"route"` — a heading arriving via client
+ * navigation — waits `HEADING_REVEAL_ROUTE_DELAY_MS` so it plays once the
+ * page has settled rather than during the view-transition page push. Under
+ * reduced motion nothing splits and the heading is simply present, exactly as
+ * `planSectionReveal` leaves scroll-reveal content present.
+ */
+export function planHeadingReveal({
+  trigger,
+  env,
+}: {
+  trigger: HeadingRevealTrigger;
+  env: Pick<MotionEnvironment, "prefersReducedMotion">;
+}): HeadingRevealPlan {
+  return {
+    enabled: !env.prefersReducedMotion,
+    delayMs: trigger === "route" ? HEADING_REVEAL_ROUTE_DELAY_MS : 0,
   };
 }

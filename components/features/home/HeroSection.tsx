@@ -2,6 +2,7 @@ import { Fragment } from "react";
 
 import type { About } from "@/lib/sanity";
 
+import { HeadingReveal } from "@/components/features/motion/HeadingReveal";
 import { LogoImage } from "@/components/ui/CoverImage";
 
 export function HeroSection({ about }: { about: About }) {
@@ -12,7 +13,7 @@ export function HeroSection({ about }: { about: About }) {
 
   return (
     <div className="p-md gap-xl relative flex flex-col pb-3xl mb-3xl">
-      <h1 className="type-body font-medium lg:w-1/2 pr-32">
+      <HeadingReveal className="type-body font-medium lg:w-1/2 pr-32">
         <span className="text-transparent">[{about.name}] </span>
         {headlineLines.map((line, index) => (
           <Fragment key={index}>
@@ -20,7 +21,7 @@ export function HeroSection({ about }: { about: About }) {
             {line}
           </Fragment>
         ))}
-      </h1>
+      </HeadingReveal>
 
       {about.logo && (
         <div className="size-sm">

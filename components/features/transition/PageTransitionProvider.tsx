@@ -16,6 +16,8 @@ import {
   UNCOVER_EASE,
 } from "@/lib/transition/constants";
 
+import { fireFirstLoadHeadingReveal } from "@/lib/motion/headingRevealSignal";
+
 import { firstLoadTransitionResult, transitionPhase, type TransitionEvent } from "./transitionPhase";
 
 // PageTransitionProvider signals the custom cursor to fade out by setting
@@ -109,6 +111,14 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
       window.clearTimeout(cap);
     };
   }, [state.phase, dispatch]);
+
+  // The h1 split-text reveal (#227) sequences into this same lift: fire the
+  // signal the moment uncovering begins, which only happens once the
+  // font-ready/cap race above has resolved — so the heading reveal inherits
+  // that same gate for free rather than re-implementing it.
+  useEffect(() => {
+    if (state.phase === "uncovering") fireFirstLoadHeadingReveal();
+  }, [state.phase]);
 
   // Safety cap over the whole covered + uncovering stretch so the overlay
   // always progresses back to idle even if a GSAP completion callback never

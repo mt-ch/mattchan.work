@@ -2,6 +2,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { useEffect } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  __resetFirstLoadHeadingRevealForTests,
+  onFirstLoadHeadingReveal,
+} from "@/lib/motion/headingRevealSignal";
 import { FIRST_LOAD_FONT_CAP_MS } from "@/lib/transition/constants";
 
 // gsap.matchMedia: default to "no reduced-motion preference" (the add
@@ -45,6 +49,7 @@ let fontsReady: Promise<unknown>;
 
 beforeEach(() => {
   mockMatchMediaShouldMatch = false;
+  __resetFirstLoadHeadingRevealForTests();
   fontsReady = Promise.resolve();
   Object.defineProperty(document, "fonts", {
     configurable: true,
@@ -110,6 +115,20 @@ describe("PageTransitionProvider", () => {
     await waitFor(() => expect(panelStyle()).toContain("visibility: hidden"), {
       timeout: FIRST_LOAD_FONT_CAP_MS + 500,
     });
+  });
+
+  it("fires the first-load heading-reveal signal once the panel starts lifting (#227)", async () => {
+    const listener = vi.fn();
+    const unsubscribe = onFirstLoadHeadingReveal(listener);
+
+    render(
+      <PageTransitionProvider>
+        <p>page content</p>
+      </PageTransitionProvider>,
+    );
+
+    await waitFor(() => expect(listener).toHaveBeenCalledTimes(1));
+    unsubscribe();
   });
 
   it("uses the opacity-only fade for a reduced-motion first load", async () => {

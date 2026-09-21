@@ -37,6 +37,13 @@ export const REVEAL_STAGGER_MS = 80;
 // i.e. an IntersectionObserver bottom root-margin of -(1 - ratio) * 100%.
 export const REVEAL_THRESHOLD_RATIO = 0.85;
 
+// h1 split-text heading reveal (#227). On a client navigation the incoming
+// page's heading self-triggers its reveal this long after mount, so it plays
+// once the page has settled rather than during the view-transition page push
+// (PAGE_PUSH_DURATION_MS, below). The first-load heading reveal instead
+// sequences into the panel lift — see planHeadingReveal in revealPlan.ts.
+export const HEADING_REVEAL_ROUTE_DELAY_MS = 800;
+
 // How long the view-transition page push runs. The animation itself is
 // CSS — `--page-push-duration` in styles/tokens.scss — and this value MUST
 // match it. It is mirrored here only so `TransitionLink` can hold a lock
