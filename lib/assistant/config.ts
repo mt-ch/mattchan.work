@@ -10,4 +10,4 @@
 // The API routes (`/api/chat`, `/api/reindex`) and the whole corpus /
 // guardrail pipeline stay live regardless. Re-enabling the feature is this
 // one-line change. See docs/adr/0013-ask-temporarily-disabled.md.
-export const ASK_ENABLED = false;
+export const ASK_ENABLED = true;
