@@ -14,8 +14,10 @@ export function ProjectReference({ reference }: ProjectReferenceProps) {
   return (
     <a
       href={`/projects/${slug}`}
-      data-cursor="link"
-      className="group block"
+      data-cursor="label"
+      data-cursor-label="View Project"
+      data-cursor-icon="eye"
+      className="group bg-background border-grey-200 dark:border-grey-700 block border"
       data-testid="project-reference"
     >
       {imageUrl && (
@@ -30,18 +32,15 @@ export function ProjectReference({ reference }: ProjectReferenceProps) {
           className="aspect-video w-full object-cover"
         />
       )}
-      <span className={`flex flex-col gap-2xs${imageUrl ? " mt-sm" : ""}`}>
+      <span className="gap-2xs p-sm flex flex-col">
         <span className="type-small font-medium text-black dark:text-white">
-          {title}
+          [{title}]
         </span>
         {summary && (
-          <span className="type-caption text-grey-500 dark:text-grey-400">
+          <span className="type-small text-grey-500 dark:text-grey-400 font-medium">
             {summary}
           </span>
         )}
-        <span className="mt-2xs type-caption font-medium text-brand">
-          View the project &rarr;
-        </span>
       </span>
     </a>
   );
