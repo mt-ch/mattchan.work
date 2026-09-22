@@ -33,4 +33,13 @@ describe("SiteNav", () => {
       "/",
     );
   });
+
+  it("renders the name through TextReveal's span boundary, not a bare string", () => {
+    render(<SiteNav about={about} />);
+
+    const link = screen.getByRole("link", { name: "[Matt Chan]" });
+    const span = link.querySelector("span");
+    expect(span).not.toBeNull();
+    expect(span).toHaveTextContent("[Matt Chan]");
+  });
 });

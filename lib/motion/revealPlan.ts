@@ -1,10 +1,10 @@
 import {
-  HEADING_REVEAL_ROUTE_DELAY_MS,
   REVEAL_DURATION_MS,
   REVEAL_EASE,
   REVEAL_RISE_PX,
   REVEAL_STAGGER_MS,
   REVEAL_THRESHOLD_RATIO,
+  TEXT_REVEAL_ROUTE_DELAY_MS,
 } from "./constants";
 import type { MotionEnvironment } from "./environment";
 
@@ -52,40 +52,41 @@ export function planSectionReveal({
   };
 }
 
-/** How a heading reveal was set off. See `planHeadingReveal`. */
-export type HeadingRevealTrigger = "firstload" | "route";
+/** How a text reveal was set off. See `planTextReveal`. */
+export type TextRevealTrigger = "firstload" | "route";
 
-export interface HeadingRevealPlan {
+export interface TextRevealPlan {
   /** Whether the split/reveal runs at all. `false` under OS "reduce motion" —
-   * the heading renders plain, with no split and no animation. */
+   * the element renders plain, with no split and no animation. */
   enabled: boolean;
   /** How long to wait, in ms, before the reveal starts. */
   delayMs: number;
 }
 
 /**
- * The pure decision seam for the h1 split-text reveal (#227). Given how a
- * heading's reveal was set off and the motion environment, returns whether to
- * animate and how long to wait first. The SplitText/GSAP wiring is the
- * imperative shell around this — see `useHeadingReveal`.
+ * The pure decision seam for the masked line-reveal shared by primary
+ * headings and the nav's `[name]` text (#227, refined by #233). Given how the
+ * reveal was set off and the motion environment, returns whether to animate
+ * and how long to wait first. The SplitText/GSAP wiring is the imperative
+ * shell around this — see `useTextReveal`.
  *
  * `"firstload"` needs no extra delay: it is already sequenced into the
  * first-load panel lift in `PageTransitionProvider`, itself gated on
- * `document.fonts.ready`. `"route"` — a heading arriving via client
- * navigation — waits `HEADING_REVEAL_ROUTE_DELAY_MS` so it plays once the
- * page has settled rather than during the view-transition page push. Under
- * reduced motion nothing splits and the heading is simply present, exactly as
+ * `document.fonts.ready`. `"route"` — an element arriving via client
+ * navigation — waits `TEXT_REVEAL_ROUTE_DELAY_MS` so it plays once the page
+ * has settled rather than during the view-transition page push. Under
+ * reduced motion nothing splits and the element is simply present, exactly as
  * `planSectionReveal` leaves scroll-reveal content present.
  */
-export function planHeadingReveal({
+export function planTextReveal({
   trigger,
   env,
 }: {
-  trigger: HeadingRevealTrigger;
+  trigger: TextRevealTrigger;
   env: Pick<MotionEnvironment, "prefersReducedMotion">;
-}): HeadingRevealPlan {
+}): TextRevealPlan {
   return {
     enabled: !env.prefersReducedMotion,
-    delayMs: trigger === "route" ? HEADING_REVEAL_ROUTE_DELAY_MS : 0,
+    delayMs: trigger === "route" ? TEXT_REVEAL_ROUTE_DELAY_MS : 0,
   };
 }

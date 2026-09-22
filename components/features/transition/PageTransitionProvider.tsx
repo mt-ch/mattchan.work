@@ -16,7 +16,7 @@ import {
   UNCOVER_EASE,
 } from "@/lib/transition/constants";
 
-import { fireFirstLoadHeadingReveal } from "@/lib/motion/headingRevealSignal";
+import { fireFirstLoadTextReveal } from "@/lib/motion/textRevealSignal";
 
 import { firstLoadTransitionResult, transitionPhase, type TransitionEvent } from "./transitionPhase";
 
@@ -117,7 +117,7 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
   // font-ready/cap race above has resolved — so the heading reveal inherits
   // that same gate for free rather than re-implementing it.
   useEffect(() => {
-    if (state.phase === "uncovering") fireFirstLoadHeadingReveal();
+    if (state.phase === "uncovering") fireFirstLoadTextReveal();
   }, [state.phase]);
 
   // Safety cap over the whole covered + uncovering stretch so the overlay

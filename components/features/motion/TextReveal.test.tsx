@@ -37,14 +37,14 @@ function stubReducedMotion(matches: boolean) {
   );
 }
 
-import { HeadingReveal } from "./HeadingReveal";
+import { TextReveal } from "./TextReveal";
 import {
-  __resetFirstLoadHeadingRevealForTests,
-  fireFirstLoadHeadingReveal,
-} from "@/lib/motion/headingRevealSignal";
+  __resetFirstLoadTextRevealForTests,
+  fireFirstLoadTextReveal,
+} from "@/lib/motion/textRevealSignal";
 
 beforeEach(() => {
-  __resetFirstLoadHeadingRevealForTests();
+  __resetFirstLoadTextRevealForTests();
   splitCreate.mockClear();
   gsapTo.mockClear();
   gsapSet.mockClear();
@@ -55,21 +55,30 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("HeadingReveal", () => {
+describe("TextReveal", () => {
   it("renders as an h1 by default with its children intact", () => {
     stubReducedMotion(false);
 
-    render(<HeadingReveal>Hello world</HeadingReveal>);
+    render(<TextReveal>Hello world</TextReveal>);
 
     const heading = screen.getByRole("heading", { level: 1 });
     expect(heading).toHaveTextContent("Hello world");
   });
 
+  it("renders as the given element", () => {
+    stubReducedMotion(false);
+
+    render(<TextReveal as="span">[Matt Chan]</TextReveal>);
+
+    const span = screen.getByText("[Matt Chan]");
+    expect(span.tagName).toBe("SPAN");
+  });
+
   it("does not split under reduced motion, whatever the trigger", () => {
     stubReducedMotion(true);
 
-    render(<HeadingReveal>Reduced</HeadingReveal>);
-    fireFirstLoadHeadingReveal();
+    render(<TextReveal>Reduced</TextReveal>);
+    fireFirstLoadTextReveal();
 
     expect(splitCreate).not.toHaveBeenCalled();
   });
@@ -77,11 +86,11 @@ describe("HeadingReveal", () => {
   it("waits for the first-load signal before splitting when mounted before it fires", () => {
     stubReducedMotion(false);
 
-    render(<HeadingReveal>Firstload heading</HeadingReveal>);
+    render(<TextReveal>Firstload heading</TextReveal>);
 
     expect(splitCreate).not.toHaveBeenCalled();
 
-    fireFirstLoadHeadingReveal();
+    fireFirstLoadTextReveal();
 
     expect(splitCreate).toHaveBeenCalledTimes(1);
     expect(gsapTo).toHaveBeenCalledTimes(1);
@@ -91,10 +100,10 @@ describe("HeadingReveal", () => {
     vi.useFakeTimers();
     stubReducedMotion(false);
 
-    fireFirstLoadHeadingReveal();
+    fireFirstLoadTextReveal();
     splitCreate.mockClear();
 
-    render(<HeadingReveal>Project title</HeadingReveal>);
+    render(<TextReveal>Project title</TextReveal>);
 
     expect(splitCreate).not.toHaveBeenCalled();
 
@@ -102,5 +111,17 @@ describe("HeadingReveal", () => {
 
     expect(splitCreate).toHaveBeenCalledTimes(1);
     expect(gsapTo).toHaveBeenCalledTimes(1);
+  });
+
+  it("splits with the mask option so each line reveals from behind its own mask", () => {
+    stubReducedMotion(false);
+
+    render(<TextReveal>Masked line reveal</TextReveal>);
+    fireFirstLoadTextReveal();
+
+    expect(splitCreate).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ mask: "lines" }),
+    );
   });
 });

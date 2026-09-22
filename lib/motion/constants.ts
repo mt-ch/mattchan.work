@@ -37,12 +37,22 @@ export const REVEAL_STAGGER_MS = 80;
 // i.e. an IntersectionObserver bottom root-margin of -(1 - ratio) * 100%.
 export const REVEAL_THRESHOLD_RATIO = 0.85;
 
-// h1 split-text heading reveal (#227). On a client navigation the incoming
-// page's heading self-triggers its reveal this long after mount, so it plays
-// once the page has settled rather than during the view-transition page push
-// (PAGE_PUSH_DURATION_MS, below). The first-load heading reveal instead
-// sequences into the panel lift — see planHeadingReveal in revealPlan.ts.
-export const HEADING_REVEAL_ROUTE_DELAY_MS = 800;
+// Masked line-reveal for primary headings and the nav's `[name]` text (#227,
+// refined by #233). On a client navigation the incoming element self-triggers
+// its reveal this long after mount, so it plays once the page has settled
+// rather than during the view-transition page push (PAGE_PUSH_DURATION_MS,
+// below). The first-load reveal instead sequences into the panel lift — see
+// planTextReveal in revealPlan.ts.
+export const TEXT_REVEAL_ROUTE_DELAY_MS = 800;
+
+// Timing tokens for the masked line-reveal (#233), deliberately independent
+// of the REVEAL_* tokens above that #226's below-the-fold scroll-reveal
+// system owns — tuning one must never silently retune the other. Seeded from
+// the values #227 shipped with (same duration/easing/stagger, carried over
+// as a starting point, not re-tuned as part of this change).
+export const TEXT_REVEAL_DURATION_MS = 600;
+export const TEXT_REVEAL_EASE = "cubic-bezier(0.215, 0.61, 0.355, 1)";
+export const TEXT_REVEAL_STAGGER_MS = 80;
 
 // How long the view-transition page push runs. The animation itself is
 // CSS — `--page-push-duration` in styles/tokens.scss — and this value MUST

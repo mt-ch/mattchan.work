@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  HEADING_REVEAL_ROUTE_DELAY_MS,
   REVEAL_DURATION_MS,
   REVEAL_EASE,
   REVEAL_RISE_PX,
   REVEAL_STAGGER_MS,
   REVEAL_THRESHOLD_RATIO,
+  TEXT_REVEAL_ROUTE_DELAY_MS,
 } from "./constants";
-import { planHeadingReveal, planSectionReveal } from "./revealPlan";
+import { planSectionReveal, planTextReveal } from "./revealPlan";
 
 const MOVING = { prefersReducedMotion: false };
 const REDUCED = { prefersReducedMotion: true };
@@ -50,42 +50,42 @@ describe("planSectionReveal", () => {
   });
 });
 
-describe("planHeadingReveal", () => {
+describe("planTextReveal", () => {
   it("is disabled under OS reduce-motion, whatever the trigger", () => {
     expect(
-      planHeadingReveal({ trigger: "firstload", env: REDUCED }).enabled,
+      planTextReveal({ trigger: "firstload", env: REDUCED }).enabled,
     ).toBe(false);
-    expect(planHeadingReveal({ trigger: "route", env: REDUCED }).enabled).toBe(
+    expect(planTextReveal({ trigger: "route", env: REDUCED }).enabled).toBe(
       false,
     );
   });
 
   it("is enabled when reduce-motion is off", () => {
     expect(
-      planHeadingReveal({ trigger: "firstload", env: MOVING }).enabled,
+      planTextReveal({ trigger: "firstload", env: MOVING }).enabled,
     ).toBe(true);
-    expect(planHeadingReveal({ trigger: "route", env: MOVING }).enabled).toBe(
+    expect(planTextReveal({ trigger: "route", env: MOVING }).enabled).toBe(
       true,
     );
   });
 
   it("has no delay for a first-load reveal", () => {
     expect(
-      planHeadingReveal({ trigger: "firstload", env: MOVING }).delayMs,
+      planTextReveal({ trigger: "firstload", env: MOVING }).delayMs,
     ).toBe(0);
   });
 
   it("waits the route settle delay for a client-navigation reveal", () => {
-    expect(planHeadingReveal({ trigger: "route", env: MOVING }).delayMs).toBe(
-      HEADING_REVEAL_ROUTE_DELAY_MS,
+    expect(planTextReveal({ trigger: "route", env: MOVING }).delayMs).toBe(
+      TEXT_REVEAL_ROUTE_DELAY_MS,
     );
   });
 
   it("still reports the route delay under reduced motion, even though disabled", () => {
     // delayMs is only meaningful when enabled, but it should not silently
     // collapse to 0 and mask which trigger produced the plan.
-    expect(planHeadingReveal({ trigger: "route", env: REDUCED }).delayMs).toBe(
-      HEADING_REVEAL_ROUTE_DELAY_MS,
+    expect(planTextReveal({ trigger: "route", env: REDUCED }).delayMs).toBe(
+      TEXT_REVEAL_ROUTE_DELAY_MS,
     );
   });
 });

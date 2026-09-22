@@ -110,46 +110,60 @@ no reveal markup or classes, only the ref.
 alongside the smooth-scroll token. Nothing hardcodes a duration, distance, or
 easing.
 
-## h1 split-text heading reveal (#227)
+## Masked line-reveal for headings and the nav (#227, refined by #233)
 
 **A page's primary heading — the home hero `<h1>` and the Project Header
-`<h1>` — splits into lines and animates in with a staggered fade + rise.**
-Only headings opt in; body copy is never split. Two triggers cover how a
-heading came to be on screen:
+`<h1>` — and the nav's `[name]` text split into lines and slide up into place
+from behind a hard mask, no opacity change at any point.** #227 shipped this
+as a fade + rise; #233 replaced the mechanic with a masked slide (each line
+sits in its own `overflow: clip` box and moves its own full height into
+place) and extended it to the nav, since on the home page the nav sits beside
+the hero headline's first line and needs to move in lockstep with it rather
+than pop in statically. Only these primary headings and the nav opt in; body
+copy is never split. Two triggers cover how an element came to be on screen:
 
 - **First load.** Sequenced into the existing first-load panel lift in
   `PageTransitionProvider`. `PageTransitionProvider` already delays that lift
   until `document.fonts.ready` (or its font cap) resolves, so rather than
-  re-implementing that gate, the heading reveal rides it: the provider fires
-  a one-shot `lib/motion/headingRevealSignal.ts` window event the moment the
-  panel starts uncovering, and any heading mounted before that point (i.e.
-  under the still-covered panel, whichever route it happens to be) waits for
-  it before splitting.
-- **Client navigation.** A heading that mounts *after* the signal has already
-  fired this session — the incoming page of a later navigation — self-times a
-  ~800ms settle delay instead of waiting for anything, so it plays once the
-  page has settled rather than during the view-transition page push below.
+  re-implementing that gate, the reveal rides it: the provider fires a
+  one-shot `lib/motion/textRevealSignal.ts` window event the moment the panel
+  starts uncovering, and any heading or nav text mounted before that point
+  (i.e. under the still-covered panel, whichever route it happens to be)
+  waits for it before splitting.
+- **Client navigation.** An element that mounts *after* the signal has
+  already fired this session — the incoming page of a later navigation —
+  self-times a ~800ms settle delay instead of waiting for anything, so it
+  plays once the page has settled rather than during the view-transition page
+  push below.
 
-**`planHeadingReveal({ trigger, env })` is the pure decision seam** — in
+**`planTextReveal({ trigger, env })` is the pure decision seam** — in
 `lib/motion/revealPlan.ts`, returning `{ enabled, delayMs }`. `delayMs` is `0`
-for `"firstload"` and `HEADING_REVEAL_ROUTE_DELAY_MS` (800, in
+for `"firstload"` and `TEXT_REVEAL_ROUTE_DELAY_MS` (800, in
 `lib/motion/constants.ts`) for `"route"`. `enabled` is `false` under OS
-reduce-motion, whatever the trigger: the heading renders plain, with no split
+reduce-motion, whatever the trigger: the element renders plain, with no split
 and no animation.
 
-**`useHeadingReveal` is the imperative shell**, mirroring `useSectionReveal`'s
+**`useTextReveal` is the imperative shell**, mirroring `useSectionReveal`'s
 split between pure plan and imperative wiring. It reads
-`hasFirstLoadHeadingRevealFired()` to pick the trigger, calls
-`planHeadingReveal`, and — when enabled — splits the heading with GSAP's
-`SplitText` (`type: "lines"`, its default `aria: "auto"`) and fades + rises
-each line in with `REVEAL_RISE_PX`/`REVEAL_DURATION_MS`/`REVEAL_EASE`/
-`REVEAL_STAGGER_MS`, the same tokens `planSectionReveal` uses. `SplitText`'s
-default `aria: "auto"` is what keeps this accessible without a custom
-mechanism: it sets `aria-label` on the heading to its full text and marks
-every split line `aria-hidden`, so a screen reader reads the heading intact
-regardless of the split. `HeadingReveal` (`components/features/motion/`) is
-the client boundary `HeroSection` and `ProjectHeader` wrap their `<h1>` in,
-mirroring `Reveal`'s role for scroll reveals.
+`hasFirstLoadTextRevealFired()` to pick the trigger, calls `planTextReveal`,
+and — when enabled — splits the element with GSAP's `SplitText`
+(`type: "lines", mask: "lines"`, its default `aria: "auto"`) and slides each
+line from `yPercent: 100` to `0` with `TEXT_REVEAL_DURATION_MS`/
+`TEXT_REVEAL_EASE`/`TEXT_REVEAL_STAGGER_MS` — tokens dedicated to this reveal
+and deliberately independent of the `REVEAL_*` tokens `planSectionReveal`
+owns for the below-the-fold scroll-reveal system, so tuning one can never
+silently retune the other. `SplitText`'s `mask: "lines"` option is what
+provides the masking itself (each line wrapped in its own `overflow: clip`
+box) — no hand-rolled wrapper markup. `SplitText`'s default `aria: "auto"` is
+what keeps this accessible without a custom mechanism: it sets `aria-label`
+on the element to its full text and marks every split line `aria-hidden`, so
+a screen reader reads it intact regardless of the split. `TextReveal`
+(`components/features/motion/`, renamed from `HeadingReveal` since the nav —
+not a heading — now shares it) is the client boundary `HeroSection`,
+`ProjectHeader`, and `SiteNav` wrap their heading or nav text in, mirroring
+`Reveal`'s role for scroll reveals. `SiteNav` only wraps the text node inside
+its `TransitionLink`; the link's click target, `data-cursor` attribute, and
+accessible name are unaffected.
 
 ## View-transition page push (#228)
 
@@ -242,15 +256,19 @@ reduce-motion; constructed and bound to the scroll container otherwise).
 counts and reduced motion); `Reveal` has a behaviour test with
 `IntersectionObserver` stubbed — an intersected element ends revealed and is
 not re-animated on a second intersection, and under reduced motion no observer
-is created and nothing is hidden. `planHeadingReveal` has unit tests
-(`enabled` across both triggers and reduced motion, `delayMs` `0` for
-`"firstload"` and the route settle delay for `"route"`); `headingRevealSignal`
-has unit tests for the one-shot fire/subscribe/unsubscribe behaviour;
-`HeadingReveal` has a behaviour test with `gsap` and `gsap/SplitText` mocked —
-no split under reduced motion, a heading mounted before the first-load signal
-splits only once it fires, and a heading mounted after it has already fired
-splits itself once its settle-delay timer elapses; `PageTransitionProvider`
-asserts the signal fires once the panel starts uncovering.
+is created and nothing is hidden. `planTextReveal` has unit tests (`enabled`
+across both triggers and reduced motion, `delayMs` `0` for `"firstload"` and
+the route settle delay for `"route"`); `textRevealSignal` has unit tests for
+the one-shot fire/subscribe/unsubscribe behaviour; `TextReveal` has a
+behaviour test with `gsap` and `gsap/SplitText` mocked — no split under
+reduced motion, an element mounted before the first-load signal splits only
+once it fires, an element mounted after it has already fired splits itself
+once its settle-delay timer elapses, and `SplitText.create` is called with
+`mask: "lines"` (the one deliberate exception to "no call-shape assertions,"
+scoped to proving the masking option is wired, not to any numeric tween
+value); `PageTransitionProvider` asserts the signal fires once the panel
+starts uncovering; `SiteNav` asserts its `[name]` text renders through
+`TextReveal`.
 `resolvePageTransitionMode` has pure unit tests (`"instant"` for each of the
 three conditions in isolation, `"view-transition"` only when all permit);
 `transitionPhase` and

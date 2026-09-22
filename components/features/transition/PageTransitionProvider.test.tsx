@@ -3,9 +3,9 @@ import { useEffect } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  __resetFirstLoadHeadingRevealForTests,
-  onFirstLoadHeadingReveal,
-} from "@/lib/motion/headingRevealSignal";
+  __resetFirstLoadTextRevealForTests,
+  onFirstLoadTextReveal,
+} from "@/lib/motion/textRevealSignal";
 import { FIRST_LOAD_FONT_CAP_MS } from "@/lib/transition/constants";
 
 // gsap.matchMedia: default to "no reduced-motion preference" (the add
@@ -49,7 +49,7 @@ let fontsReady: Promise<unknown>;
 
 beforeEach(() => {
   mockMatchMediaShouldMatch = false;
-  __resetFirstLoadHeadingRevealForTests();
+  __resetFirstLoadTextRevealForTests();
   fontsReady = Promise.resolve();
   Object.defineProperty(document, "fonts", {
     configurable: true,
@@ -119,7 +119,7 @@ describe("PageTransitionProvider", () => {
 
   it("fires the first-load heading-reveal signal once the panel starts lifting (#227)", async () => {
     const listener = vi.fn();
-    const unsubscribe = onFirstLoadHeadingReveal(listener);
+    const unsubscribe = onFirstLoadTextReveal(listener);
 
     render(
       <PageTransitionProvider>
